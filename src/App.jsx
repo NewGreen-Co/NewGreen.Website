@@ -442,7 +442,7 @@ function Hero({ lang }) {
                 <p className="text-sm text-center max-w-[200px]">
                   Bild speichern als:<br />
                   <code className="text-xs bg-slate-200 px-2 py-0.5 rounded text-slate-600">
-                    public/neuengruen.jpg
+                    public/Firmengebäute.jpg
                   </code>
                 </p>
               </div>
