@@ -99,7 +99,8 @@ function TerminKarte({ termin, vergangen }) {
 
   return (
     <Card className={`p-5 ${vergangen ? 'opacity-60' : ''}`}>
-      <div className="flex items-start gap-4">
+      {/* Aktionsspalte rutscht auf schmalen Bildschirmen unter den Inhalt */}
+      <div className="flex flex-wrap items-start gap-4">
         <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${art.color}`}>
           <art.icon size={20} />
         </div>
@@ -132,7 +133,7 @@ function TerminKarte({ termin, vergangen }) {
         </div>
 
         {/* Aktionen */}
-        <div className="flex flex-col items-end gap-2 shrink-0">
+        <div className="w-full sm:w-auto sm:shrink-0 flex flex-row-reverse sm:flex-col items-center sm:items-end justify-between gap-2">
           {!vergangen && (
             <Button
               variant={angemeldet ? 'secondary' : 'primary'}

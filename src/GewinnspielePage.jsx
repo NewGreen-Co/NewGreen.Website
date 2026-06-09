@@ -165,7 +165,8 @@ function GutscheinKarte({ gutschein }) {
 
   return (
     <Card className="p-5">
-      <div className="flex items-start gap-4">
+      {/* Aktionsspalte rutscht auf schmalen Bildschirmen unter den Inhalt */}
+      <div className="flex flex-wrap items-start gap-4">
         <div className="w-11 h-11 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0">
           <Ticket size={20} />
         </div>
@@ -209,10 +210,10 @@ function GutscheinKarte({ gutschein }) {
         </div>
 
         {/* Aktionen */}
-        <div className="flex flex-col items-end gap-2 shrink-0">
+        <div className="w-full sm:w-auto sm:shrink-0 flex flex-row-reverse sm:flex-col items-center sm:items-end justify-between gap-2 empty:hidden">
           {istVorstand && mitglied && <Avatar mitglied={mitglied} />}
           {istVorstand && gutschein.status === 'eingereicht' && (
-            <div className="flex flex-col gap-1.5">
+            <div className="flex sm:flex-col gap-1.5">
               <Button onClick={() => setFreigabe(true)}><CheckCircle2 size={15} /> Freigeben</Button>
               <Button variant="danger" onClick={ablehnen}><XCircle size={15} /> Ablehnen</Button>
             </div>

@@ -120,8 +120,9 @@ export function Modal({ title, onClose, children }) {
 
 // ─── FORMULARFELDER ───────────────────────────────────────────────────────────
 
+// text-base auf Mobilgeräten: unter 16 px zoomt iOS beim Fokussieren in das Feld
 const fieldClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-600/30 focus:border-green-600 bg-white'
+  'w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-base sm:text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-600/30 focus:border-green-600 bg-white'
 
 export function Field({ label, children }) {
   return (

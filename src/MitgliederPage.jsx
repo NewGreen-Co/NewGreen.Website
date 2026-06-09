@@ -124,7 +124,7 @@ export default function MitgliederPage() {
           value={suche}
           onChange={(e) => setSuche(e.target.value)}
           placeholder="Mitglied suchen …"
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-600/30 focus:border-green-600"
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-base sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-600/30 focus:border-green-600"
         />
       </div>
 

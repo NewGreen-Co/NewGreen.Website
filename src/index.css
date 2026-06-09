@@ -3,12 +3,19 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* Verhindert ungewollte Textvergrößerung bei Rotation auf iOS */
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     margin: 0;
+    /* Kein "Gummiband"-Überscrollen der ganzen Seite auf Mobilgeräten */
+    overscroll-behavior-y: none;
+    /* Aussparung für Notch/Home-Indicator (viewport-fit=cover) */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   #root {
