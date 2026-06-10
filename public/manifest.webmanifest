@@ -1,0 +1,15 @@
+{
+  "name": "KJG Neuengrün – Vereins-App",
+  "short_name": "KJG Neuengrün",
+  "description": "Vereinsorganisation der Katholischen Jugend Neuengrün – Termine, Aufgaben, Kasse und Gewinn-Gutscheine.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#166534",
+  "lang": "de",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
