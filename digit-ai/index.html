@@ -48,6 +48,20 @@
     button:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
     button.sekundaer { background: transparent; color: var(--text); border: 1px solid var(--border); }
     button.sekundaer:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: transparent; }
+    a.downloadKnopf {
+      display: inline-block;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      margin: 4px 8px 4px 0;
+    }
+    a.downloadKnopf:hover { border-color: var(--accent); color: var(--accent); }
+    a.downloadKnopf small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
     label { color: var(--muted); font-size: 0.9rem; margin-right: 6px; }
     input[type="number"] {
       background: var(--bg);
@@ -198,6 +212,36 @@
     <div id="details"></div>
     <canvas id="anzeigeCanvas"></canvas>
     <p class="hinweis">Tipp: Am besten funktionieren dunkle Ziffern auf hellem Hintergrund (oder umgekehrt) mit etwas Abstand zwischen den Ziffern.</p>
+  </div>
+
+  <div class="panel">
+    <h2>📚 Weitere Lern-Datensätze (Downloads)</h2>
+    <p class="hinweis" style="margin-top: 0;">
+      Öffentliche Datenbanken mit fertig beschrifteten Trainingsbildern –
+      die Buttons führen zur jeweiligen offiziellen Download-Seite
+      (öffnet in neuem Tab).</p>
+    <div class="zeile">
+      <a class="downloadKnopf" href="https://www.nist.gov/itl/products-and-services/emnist-dataset" target="_blank" rel="noopener">⬇️ EMNIST
+        <small>Ziffern + Buchstaben, 800.000+ Bilder</small></a>
+      <a class="downloadKnopf" href="https://github.com/facebookresearch/qmnist" target="_blank" rel="noopener">⬇️ QMNIST
+        <small>wie MNIST, sauberer beschriftet</small></a>
+      <a class="downloadKnopf" href="https://github.com/rois-codh/kmnist" target="_blank" rel="noopener">⬇️ KMNIST
+        <small>japanische Schriftzeichen</small></a>
+      <a class="downloadKnopf" href="https://github.com/zalandoresearch/fashion-mnist" target="_blank" rel="noopener">⬇️ Fashion-MNIST
+        <small>Kleidungsstücke statt Ziffern</small></a>
+      <a class="downloadKnopf" href="http://ufldl.stanford.edu/housenumbers/" target="_blank" rel="noopener">⬇️ SVHN
+        <small>echte Hausnummern-Fotos</small></a>
+    </div>
+    <div class="zeile">
+      <a class="downloadKnopf" href="https://www.kaggle.com/datasets" target="_blank" rel="noopener">🔎 Kaggle Datasets
+        <small>Sammelstelle mit tausenden Datensätzen</small></a>
+      <a class="downloadKnopf" href="https://huggingface.co/datasets" target="_blank" rel="noopener">🔎 Hugging Face Datasets
+        <small>Sammelstelle mit tausenden Datensätzen</small></a>
+    </div>
+    <p class="hinweis">Hinweis: Die App trainiert aktuell mit MNIST (Schritt 1).
+      Diese Downloads sind Rohdaten für eigene Experimente – ein eigener
+      Lade-Mechanismus pro Datensatz ist nötig, um damit direkt hier zu
+      trainieren.</p>
   </div>
 
   <script src="tf.min.js"></script>
