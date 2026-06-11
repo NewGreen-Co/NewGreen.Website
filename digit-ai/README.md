@@ -29,11 +29,15 @@ Dann im Browser `http://localhost:5173/digit-ai/index.html` öffnen.
 
 1. **Trainingsdaten laden** – lädt den MNIST-Datensatz
    (65.000 Bilder handgeschriebener Ziffern, ca. 10 MB).
-2. **KI trainieren** – Anzahl der Trainingsbilder und Epochen wählen und
-   das Training starten. Der Fortschritt und die Genauigkeit werden live
-   angezeigt. Mit den Standardwerten (15.000 Bilder, 5 Epochen) erreicht
-   das Netz nach 1–2 Minuten etwa 97–99 % Testgenauigkeit. Mehr Bilder
-   und Epochen = bessere Erkennung.
+2. **KI trainieren** – Modus, Anzahl der Trainingsbilder und Epochen
+   wählen und das Training starten. Der Fortschritt und die Genauigkeit
+   werden live angezeigt. Mit den Standardwerten (Turbo, 15.000 Bilder,
+   5 Epochen) erreicht das Netz nach 1–2 Minuten etwa 98–99 %
+   Testgenauigkeit. Mehr Bilder und Epochen = bessere Erkennung.
+   - **Standard:** kleines, schnelles Netz (gut zum Ausprobieren).
+   - **⚡ Turbo:** größeres Netz mit Batch-Normalisierung,
+     One-Cycle-Lernraten-Fahrplan und Batch-Größe 256 – lernt schneller
+     pro Epoche und erreicht höhere Genauigkeit.
 3. **Modell speichern / laden** – das trainierte Modell im Browser
    speichern oder als Datei herunterladen. So musst du nur **einmal**
    trainieren und kannst es beim nächsten Mal einfach wieder laden.
@@ -54,9 +58,13 @@ Dann im Browser `http://localhost:5173/digit-ai/index.html` öffnen.
 ## Technik
 
 - **Modell:** Convolutional Neural Network (2 Conv- + Pooling-Schichten,
-  Dense-Schicht mit Dropout, Softmax-Ausgabe für 10 Klassen).
-- **Training:** Adam-Optimizer, Kreuzentropie-Verlust, live im Browser
-  (GPU-beschleunigt über WebGL, wenn verfügbar).
+  Dense-Schicht mit Dropout, Softmax-Ausgabe für 10 Klassen). Im
+  Turbo-Modus zusätzlich Batch-Normalisierung nach jeder Schicht.
+- **Training:** Adam-Optimizer, Kreuzentropie-Verlust, live im Browser.
+  Rechen-Backend automatisch: WebGPU → WebGL → CPU (das aktive Backend
+  wird oben auf der Seite angezeigt). Im Turbo-Modus mit
+  One-Cycle-Lernraten-Schedule und Batch-Größe 256.
+- **Layout:** responsiv, funktioniert auch auf dem Handy.
 - **Mehrere Ziffern pro Bild:** Das Bild wird per Otsu-Schwellenwert
   binarisiert, zusammenhängende Bereiche werden gefunden
   (Connected-Component-Analyse), einzeln wie MNIST-Bilder aufbereitet

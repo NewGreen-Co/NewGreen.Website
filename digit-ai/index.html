@@ -60,6 +60,15 @@
     }
     input[type="file"] { color: var(--muted); margin: 8px 0; }
     .zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+    select {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      margin-right: 16px;
+      font-size: 0.95rem;
+    }
     .fortschritt-rahmen {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -100,11 +109,29 @@
     }
     #details { color: var(--muted); font-size: 0.9rem; white-space: pre-line; }
     .hinweis { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+    #backendInfo { font-size: 0.85rem; color: var(--muted); }
+    canvas { max-width: 100%; }
+    #chart { width: 100%; height: auto; }
+    #zeichenflaeche { width: 100%; max-width: 420px; height: auto; }
+
+    /* Anpassung für Handys */
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      h1 { font-size: 1.3rem; }
+      .panel { padding: 14px; }
+      button { width: 100%; margin: 4px 0; padding: 12px; }
+      button.sekundaer { width: 100%; }
+      .zeile { gap: 4px; }
+      input[type="number"] { width: 100%; margin-right: 0; }
+      label { display: block; width: 100%; margin-top: 6px; }
+      #ergebnis { font-size: 2.4rem; padding: 12px 8px; letter-spacing: 0.1em; }
+    }
   </style>
 </head>
 <body>
   <h1>🔢 Ziffern-KI</h1>
-  <p class="untertitel">Trainiere ein neuronales Netz auf handgeschriebene Ziffern (MNIST) und erkenne danach alle Zahlen in einem Bild.</p>
+  <p class="untertitel">Trainiere ein neuronales Netz auf handgeschriebene Ziffern (MNIST) und erkenne danach alle Zahlen in einem Bild.<br />
+  <span id="backendInfo">Rechen-Backend wird initialisiert …</span></p>
 
   <div class="panel">
     <h2>Schritt 1: Trainingsdaten laden</h2>
@@ -117,12 +144,22 @@
   <div class="panel">
     <h2>Schritt 2: KI trainieren</h2>
     <div class="zeile">
+      <label for="modus">Modus:</label>
+      <select id="modus">
+        <option value="standard">Standard (kleines Netz)</option>
+        <option value="turbo" selected>⚡ Turbo (BatchNorm + One-Cycle)</option>
+      </select>
       <label for="anzahlBilder">Trainingsbilder:</label>
       <input type="number" id="anzahlBilder" value="15000" min="1000" max="55000" step="1000" />
       <label for="epochen">Epochen:</label>
       <input type="number" id="epochen" value="5" min="1" max="50" />
+    </div>
+    <div class="zeile">
       <button id="btnTraining" disabled>🚀 Training starten</button>
     </div>
+    <p class="hinweis">Turbo nutzt ein größeres Netz mit Batch-Normalisierung, einen
+      Lernraten-Fahrplan (One-Cycle) und größere Rechenpäckchen (Batch 256) –
+      lernt schneller und genauer.</p>
     <div class="fortschritt-rahmen"><div class="fortschritt-balken" id="balken"></div></div>
     <div id="trainStatus"></div>
     <canvas id="chart" width="920" height="160"></canvas>
@@ -164,6 +201,7 @@
   </div>
 
   <script src="tf.min.js"></script>
+  <script src="tf-backend-webgpu.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

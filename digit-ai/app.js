@@ -75,9 +75,34 @@ class MnistDaten {
   }
 }
 
+// ---------- Rechen-Backend (WebGPU > WebGL > CPU) ----------
+
+async function initialisiereBackend() {
+  const info = document.getElementById('backendInfo');
+  try {
+    if (navigator.gpu) {
+      const ok = await tf.setBackend('webgpu');
+      if (ok) {
+        await tf.ready();
+        info.textContent = '⚡ Rechen-Backend: WebGPU (schnellste Variante)';
+        return;
+      }
+    }
+  } catch {
+    // WebGPU nicht verfügbar – unten auf WebGL/CPU zurückfallen
+  }
+  await tf.ready();
+  const backend = tf.getBackend();
+  info.textContent = backend === 'webgl'
+    ? '✅ Rechen-Backend: WebGL (Grafikkarte)'
+    : `Rechen-Backend: ${backend} (langsamer – moderner Browser empfohlen)`;
+}
+initialisiereBackend();
+
 // ---------- Modell ----------
 
-function erstelleModell() {
+// Standard: kleines, schnelles Netz.
+function erstelleStandardModell() {
   const modell = tf.sequential();
   modell.add(tf.layers.conv2d({
     inputShape: [28, 28, 1], kernelSize: 5, filters: 8, activation: 'relu',
@@ -93,6 +118,42 @@ function erstelleModell() {
   return modell;
 }
 
+// Turbo: größeres Netz mit Batch-Normalisierung. BatchNorm zieht die
+// Zwischenwerte glatt, sodass größere Lernschritte möglich sind –
+// das Netz konvergiert schneller und erreicht höhere Genauigkeit.
+function erstelleTurboModell() {
+  const modell = tf.sequential();
+  modell.add(tf.layers.conv2d({
+    inputShape: [28, 28, 1], kernelSize: 3, filters: 16, padding: 'same', useBias: false,
+  }));
+  modell.add(tf.layers.batchNormalization());
+  modell.add(tf.layers.activation({ activation: 'relu' }));
+  modell.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
+  modell.add(tf.layers.conv2d({
+    kernelSize: 3, filters: 32, padding: 'same', useBias: false,
+  }));
+  modell.add(tf.layers.batchNormalization());
+  modell.add(tf.layers.activation({ activation: 'relu' }));
+  modell.add(tf.layers.maxPooling2d({ poolSize: 2, strides: 2 }));
+  modell.add(tf.layers.flatten());
+  modell.add(tf.layers.dense({ units: 128, useBias: false }));
+  modell.add(tf.layers.batchNormalization());
+  modell.add(tf.layers.activation({ activation: 'relu' }));
+  modell.add(tf.layers.dropout({ rate: 0.3 }));
+  modell.add(tf.layers.dense({ units: ANZAHL_KLASSEN, activation: 'softmax' }));
+  kompiliere(modell);
+  return modell;
+}
+
+// One-Cycle-Lernraten-Fahrplan: erst hochfahren (vorsichtig starten),
+// dann lange mit großen Schritten lernen, am Ende fein einparken.
+function oneCycleLernrate(fortschritt) {
+  const niedrig = 0.0004, hoch = 0.003, ende = 0.00004;
+  if (fortschritt < 0.3) return niedrig + (hoch - niedrig) * (fortschritt / 0.3);
+  if (fortschritt < 0.85) return hoch - (hoch - niedrig) * ((fortschritt - 0.3) / 0.55);
+  return niedrig - (niedrig - ende) * ((fortschritt - 0.85) / 0.15);
+}
+
 function kompiliere(modell) {
   modell.compile({
     optimizer: tf.train.adam(),
@@ -101,11 +162,18 @@ function kompiliere(modell) {
   });
 }
 
+// Erkennt bei geladenen Modellen, ob es ein Turbo-Netz (mit BatchNorm) ist.
+function erkenneModus(modell) {
+  return modell.layers.some((s) => s.getClassName() === 'BatchNormalization')
+    ? 'turbo' : 'standard';
+}
+
 // ---------- Zustand & UI-Elemente ----------
 
 const daten = new MnistDaten();
 let datenGeladen = false;
 let modell = null;
+let modellModus = null; // 'standard' oder 'turbo'
 
 const el = (id) => document.getElementById(id);
 const btnDaten = el('btnDaten');
@@ -177,18 +245,24 @@ btnTraining.addEventListener('click', async () => {
   if (!datenGeladen) return;
   const anzahl = Math.max(1000, Math.min(55000, parseInt(el('anzahlBilder').value, 10) || 15000));
   const epochen = Math.max(1, Math.min(50, parseInt(el('epochen').value, 10) || 5));
+  const modus = el('modus').value;
 
   btnTraining.disabled = true;
   btnDaten.disabled = true;
   genauigkeitsVerlauf = [];
   zeichneChart();
 
-  if (!modell) modell = erstelleModell();
+  // Bei Moduswechsel neu beginnen, sonst auf dem alten Stand weitertrainieren
+  if (!modell || modellModus !== modus) {
+    modell = modus === 'turbo' ? erstelleTurboModell() : erstelleStandardModell();
+    modellModus = modus;
+  }
 
   const [xs, ys] = daten.holeTensoren(anzahl, false);
   const [testXs, testYs] = daten.holeTensoren(2000, true);
 
-  const batchGroesse = 128;
+  // Turbo: größere Päckchen lasten die Grafikkarte besser aus
+  const batchGroesse = modus === 'turbo' ? 256 : 128;
   const batchesProEpoche = Math.ceil(anzahl / batchGroesse);
   const batchesGesamt = batchesProEpoche * epochen;
   let fertigeBatches = 0;
@@ -201,6 +275,12 @@ btnTraining.addEventListener('click', async () => {
       shuffle: true,
       validationData: [testXs, testYs],
       callbacks: {
+        onBatchBegin: () => {
+          if (modus === 'turbo') {
+            modell.optimizer.learningRate =
+              oneCycleLernrate(fertigeBatches / batchesGesamt);
+          }
+        },
         onBatchEnd: (batch, logs) => {
           fertigeBatches++;
           balken.style.width = ((fertigeBatches / batchesGesamt) * 100).toFixed(1) + '%';
@@ -237,6 +317,8 @@ btnLadenBrowser.addEventListener('click', async () => {
   try {
     modell = await tf.loadLayersModel(SPEICHER_PFAD);
     kompiliere(modell);
+    modellModus = erkenneModus(modell);
+    el('modus').value = modellModus;
     trainStatus.textContent = '📂 Gespeichertes Modell geladen – bereit zum Erkennen.';
     aktiviereErkennung();
   } catch {
@@ -259,6 +341,8 @@ el('modellDateien').addEventListener('change', async (ereignis) => {
   try {
     modell = await tf.loadLayersModel(tf.io.browserFiles([json, ...gewichte]));
     kompiliere(modell);
+    modellModus = erkenneModus(modell);
+    el('modus').value = modellModus;
     trainStatus.textContent = '📂 Modell aus Dateien geladen – bereit zum Erkennen.';
     aktiviereErkennung();
   } catch (fehler) {
