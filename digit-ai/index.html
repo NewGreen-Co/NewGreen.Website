@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ziffern-KI – Trainieren &amp; Erkennen</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-dark: #16a34a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+    h1 { margin: 0 0 4px; font-size: 1.6rem; }
+    h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--accent); }
+    .untertitel { color: var(--muted); margin-bottom: 24px; }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      max-width: 980px;
+    }
+    button {
+      background: var(--accent);
+      color: #052e16;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 4px 8px 4px 0;
+    }
+    button:hover:not(:disabled) { background: var(--accent-dark); color: #fff; }
+    button:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+    button.sekundaer { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    button.sekundaer:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: transparent; }
+    label { color: var(--muted); font-size: 0.9rem; margin-right: 6px; }
+    input[type="number"] {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      width: 90px;
+      margin-right: 16px;
+    }
+    input[type="file"] { color: var(--muted); margin: 8px 0; }
+    .zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .fortschritt-rahmen {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      height: 22px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .fortschritt-balken {
+      background: var(--accent);
+      height: 100%;
+      width: 0%;
+      transition: width 0.15s;
+    }
+    #statusText, #trainStatus { color: var(--muted); font-size: 0.9rem; min-height: 1.2em; }
+    #chart { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-top: 10px; }
+    #zeichenflaeche {
+      background: #000;
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    #anzeigeCanvas { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; margin-top: 12px; display: none; }
+    #ergebnis {
+      font-family: "SF Mono", Consolas, monospace;
+      font-size: 4rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 24px;
+      margin: 14px 0;
+      min-height: 1.2em;
+      text-align: center;
+    }
+    #details { color: var(--muted); font-size: 0.9rem; white-space: pre-line; }
+    .hinweis { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🔢 Ziffern-KI</h1>
+  <p class="untertitel">Trainiere ein neuronales Netz auf handgeschriebene Ziffern (MNIST) und erkenne danach alle Zahlen in einem Bild.</p>
+
+  <div class="panel">
+    <h2>Schritt 1: Trainingsdaten laden</h2>
+    <div class="zeile">
+      <button id="btnDaten">📥 MNIST-Daten laden (65.000 Bilder)</button>
+      <span id="statusText">Noch keine Daten geladen.</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Schritt 2: KI trainieren</h2>
+    <div class="zeile">
+      <label for="anzahlBilder">Trainingsbilder:</label>
+      <input type="number" id="anzahlBilder" value="15000" min="1000" max="55000" step="1000" />
+      <label for="epochen">Epochen:</label>
+      <input type="number" id="epochen" value="5" min="1" max="50" />
+      <button id="btnTraining" disabled>🚀 Training starten</button>
+    </div>
+    <div class="fortschritt-rahmen"><div class="fortschritt-balken" id="balken"></div></div>
+    <div id="trainStatus"></div>
+    <canvas id="chart" width="920" height="160"></canvas>
+  </div>
+
+  <div class="panel">
+    <h2>Schritt 3: Modell speichern / laden</h2>
+    <div class="zeile">
+      <button id="btnSpeichern" class="sekundaer" disabled>💾 Im Browser speichern</button>
+      <button id="btnLadenBrowser" class="sekundaer">📂 Aus Browser laden</button>
+      <button id="btnDownload" class="sekundaer" disabled>⬇️ Als Datei herunterladen</button>
+    </div>
+    <div class="zeile">
+      <label>Modell-Dateien laden (model.json + .weights.bin):</label>
+      <input type="file" id="modellDateien" multiple accept=".json,.bin" />
+    </div>
+    <p class="hinweis">So musst du nur einmal trainieren – beim nächsten Besuch einfach das Modell wieder laden.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Schritt 4: Zahlen erkennen</h2>
+    <div class="zeile">
+      <div>
+        <canvas id="zeichenflaeche" width="420" height="170"></canvas>
+        <div>
+          <button id="btnErkennenZeichnung" disabled>🔍 Zeichnung erkennen</button>
+          <button id="btnLoeschen" class="sekundaer">🗑️ Löschen</button>
+        </div>
+      </div>
+    </div>
+    <div class="zeile">
+      <label>… oder ein Bild mit Zahlen hochladen:</label>
+      <input type="file" id="bildUpload" accept="image/*" disabled />
+    </div>
+    <div id="ergebnis">–</div>
+    <div id="details"></div>
+    <canvas id="anzeigeCanvas"></canvas>
+    <p class="hinweis">Tipp: Am besten funktionieren dunkle Ziffern auf hellem Hintergrund (oder umgekehrt) mit etwas Abstand zwischen den Ziffern.</p>
+  </div>
+
+  <script src="tf.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
